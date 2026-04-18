@@ -5,6 +5,7 @@
 #include <iostream>
 #include <cmath>
 #include <limits>
+#include <chrono>
 
 using namespace std;
 
@@ -86,9 +87,20 @@ double cluster_distance(
 }
 
 // ------------------------------------------------------------
+// HAC Result struct
+// ------------------------------------------------------------
+struct HACResult {
+    vector<int> labels;
+    double runtime_seconds;
+    double memory_mb;
+};
+
+// ------------------------------------------------------------
 // HAC (Average Linkage)
 // ------------------------------------------------------------
-vector<int> hac(const vector<vector<double>>& X, int k) {
+HACResult hac(const vector<vector<double>>& X, int k) {
+    auto start_time = chrono::high_resolution_clock::now();
+    
     int n = X.size();
 
     // Start with each point as its own cluster
@@ -141,7 +153,17 @@ vector<int> hac(const vector<vector<double>>& X, int k) {
         }
     }
 
-    return labels;
+    auto end_time = chrono::high_resolution_clock::now();
+    double runtime = chrono::duration<double>(end_time - start_time).count();
+    
+    // Estimate memory usage (approximate)
+    // Data: n * features * 8 bytes (double)
+    // Clusters: sum of all indices stored
+    double data_memory = (n * X[0].size() * sizeof(double)) / (1024.0 * 1024.0);
+    double clusters_memory = (n * sizeof(int) * 2) / (1024.0 * 1024.0); // rough estimate
+    double total_memory = data_memory + clusters_memory;
+
+    return HACResult{labels, runtime, total_memory};
 }
 
 // ------------------------------------------------------------
@@ -168,7 +190,7 @@ int main(int argc, char** argv) {
     cerr << "Loaded " << X.size() << " points with " << X[0].size() << " features\n";
     cerr << "Running HAC with k = " << k << "\n";
     
-    vector<int> labels = hac(X, k);
+    HACResult result = hac(X, k);
 
     // Ask for output filename
     string output_name;
@@ -185,11 +207,13 @@ int main(int argc, char** argv) {
     outfile << "  \"k\": " << k << ",\n";
     outfile << "  \"n\": " << X.size() << ",\n";
     outfile << "  \"linkage\": \"average\",\n";
+    outfile << "  \"runtime_seconds\": " << result.runtime_seconds << ",\n";
+    outfile << "  \"memory_mb\": " << result.memory_mb << ",\n";
     outfile << "  \"labels\": [";
     
-    for (int i = 0; i < (int)labels.size(); i++) {
+    for (int i = 0; i < (int)result.labels.size(); i++) {
         if (i > 0) outfile << ",";
-        outfile << labels[i];
+        outfile << result.labels[i];
     }
     
     outfile << "]\n";
@@ -197,6 +221,8 @@ int main(int argc, char** argv) {
     outfile.close();
     
     cerr << "Results saved to " << output_file << "\n";
+    cerr << "Runtime: " << result.runtime_seconds << " seconds\n";
+    cerr << "Memory: " << result.memory_mb << " MB\n";
 
     return 0;
 }
