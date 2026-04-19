@@ -50,3 +50,56 @@ vector<Point> generateData(int n, int dim, int k) {
 
     return data;
 }
+
+// -------------------- MAIN --------------------
+int main() {
+    srand(time(0));
+
+    int n, k, dim;
+
+    cout << "Enter number of samples (n): ";
+    cin >> n;
+
+    cout << "Enter number of clusters (k): ";
+    cin >> k;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');  // consume newline
+
+    cout << "Enter number of dimensions (dim) [default 10]: ";
+    string dim_input;
+    getline(cin, dim_input);
+    if (dim_input.empty()) {
+        dim = 10;
+    } else {
+        dim = stoi(dim_input);
+    }
+
+    vector<Point> data = generateData(n, dim, k);
+
+    string filename = "blobs_" + to_string(n) + ".csv";
+    ofstream file(filename);
+    if (!file.is_open()) {
+        cout << "Error opening file" << endl;
+        return 1;
+    }
+
+    // Write header
+    file << "feature0";
+    for (int d = 1; d < dim; d++) {
+        file << ",feature" << d;
+    }
+    file << ",label" << endl;
+
+    // Write data
+    for (int i = 0; i < n; i++) {
+        for (int d = 0; d < dim; d++) {
+            file << fixed << setprecision(2) << data[i].values[d];
+            if (d < dim - 1) file << ",";
+        }
+        file << "," << (rand() % k) << endl;  // random label
+    }
+
+    file.close();
+    cout << "Generated " << filename << " with " << n << " points, " << dim << " dimensions, " << k << " clusters." << endl;
+
+    return 0;
+}
