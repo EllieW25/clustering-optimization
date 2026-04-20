@@ -10,6 +10,15 @@
 using namespace std;
 
 // ------------------------------------------------------------
+// Linkage types
+// ------------------------------------------------------------
+enum LinkageType {
+    SINGLE,
+    COMPLETE,
+    AVERAGE
+};
+
+// ------------------------------------------------------------
 // CSV LOADER
 // ------------------------------------------------------------
 vector<vector<double>> load_csv(const string& filename) {
@@ -66,24 +75,48 @@ double euclidean(const vector<double>& a, const vector<double>& b) {
 }
 
 // ------------------------------------------------------------
-// Average linkage distance between two clusters
+// Linkage distance between two clusters
 // ------------------------------------------------------------
 double cluster_distance(
     const vector<int>& A,
     const vector<int>& B,
-    const vector<vector<double>>& X
+    const vector<vector<double>>& X,
+    LinkageType linkage
 ) {
-    double total = 0.0;
-    int count = 0;
-
-    for (int i : A) {
-        for (int j : B) {
-            total += euclidean(X[i], X[j]);
-            count++;
+    if (linkage == SINGLE) {
+        // Single linkage: minimum distance
+        double min_dist = numeric_limits<double>::infinity();
+        for (int i : A) {
+            for (int j : B) {
+                double dist = euclidean(X[i], X[j]);
+                if (dist < min_dist) min_dist = dist;
+            }
         }
+        return min_dist;
+    } else if (linkage == COMPLETE) {
+        // Complete linkage: maximum distance
+        double max_dist = 0.0;
+        for (int i : A) {
+            for (int j : B) {
+                double dist = euclidean(X[i], X[j]);
+                if (dist > max_dist) max_dist = dist;
+            }
+        }
+        return max_dist;
+    } else if (linkage == AVERAGE) {
+        // Average linkage: average distance
+        double total = 0.0;
+        int count = 0;
+        for (int i : A) {
+            for (int j : B) {
+                total += euclidean(X[i], X[j]);
+                count++;
+            }
+        }
+        return total / count;
     }
-
-    return total / count;
+    
+    return 0.0; // Should not reach here
 }
 
 // ------------------------------------------------------------
@@ -96,9 +129,9 @@ struct HACResult {
 };
 
 // ------------------------------------------------------------
-// HAC (Average Linkage)
+// HAC (Hierarchical Agglomerative Clustering)
 // ------------------------------------------------------------
-HACResult hac(const vector<vector<double>>& X, int k) {
+HACResult hac(const vector<vector<double>>& X, int k, LinkageType linkage) {
     auto start_time = chrono::high_resolution_clock::now();
     
     int n = X.size();
@@ -124,7 +157,7 @@ HACResult hac(const vector<vector<double>>& X, int k) {
 
         for (size_t i = 0; i < clusters.size(); i++) {
             for (size_t j = i + 1; j < clusters.size(); j++) {
-                double dist = cluster_distance(clusters[i], clusters[j], X);
+                double dist = cluster_distance(clusters[i], clusters[j], X, linkage);
                 if (dist < bestDist) {
                     bestDist = dist;
                     bestA = i;
@@ -168,16 +201,32 @@ HACResult hac(const vector<vector<double>>& X, int k) {
 
 // ------------------------------------------------------------
 // MAIN — standalone HAC runner
-// Usage: ./hac <csv_path> <k>
+// Usage: ./hac <csv_path> <k> <linkage>
+// Linkage options: single, complete, average
 // ------------------------------------------------------------
 int main(int argc, char** argv) {
-    if (argc < 3) {
-        cout << "Usage: ./hac <csv_path> <k>\n";
+    if (argc < 4) {
+        cout << "Usage: ./hac <csv_path> <k> <linkage>\n";
+        cout << "Linkage options: single, complete, average\n";
         return 1;
     }
 
     string filename = argv[1];
     int k = stoi(argv[2]);
+    string linkage_str = argv[3];
+    
+    LinkageType linkage;
+    if (linkage_str == "single") {
+        linkage = SINGLE;
+    } else if (linkage_str == "complete") {
+        linkage = COMPLETE;
+    } else if (linkage_str == "average") {
+        linkage = AVERAGE;
+    } else {
+        cerr << "Error: Invalid linkage type '" << linkage_str << "'\n";
+        cerr << "Valid options: single, complete, average\n";
+        return 1;
+    }
 
     cerr << "Loading dataset: " << filename << "\n";
     vector<vector<double>> X = load_csv(filename);
@@ -188,9 +237,9 @@ int main(int argc, char** argv) {
     }
     
     cerr << "Loaded " << X.size() << " points with " << X[0].size() << " features\n";
-    cerr << "Running HAC with k = " << k << "\n";
+    cerr << "Running HAC with k = " << k << " and " << linkage_str << " linkage\n";
     
-    HACResult result = hac(X, k);
+    HACResult result = hac(X, k, linkage);
 
     // Ask for output filename
     string output_name;
@@ -206,7 +255,7 @@ int main(int argc, char** argv) {
     outfile << "  \"algorithm\": \"HAC\",\n";
     outfile << "  \"k\": " << k << ",\n";
     outfile << "  \"n\": " << X.size() << ",\n";
-    outfile << "  \"linkage\": \"average\",\n";
+    outfile << "  \"linkage\": \"" << linkage_str << "\",\n";
     outfile << "  \"runtime_seconds\": " << result.runtime_seconds << ",\n";
     outfile << "  \"memory_mb\": " << result.memory_mb << ",\n";
     outfile << "  \"labels\": [";
