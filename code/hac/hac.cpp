@@ -8,7 +8,8 @@
 #include <chrono>
 
 using namespace std;
-
+//./hac ../../data/synthetic/blobs_100.csv 5 average
+//./hac path/to/csv [#clusters] [linkage: single|complete|average]
 // ------------------------------------------------------------
 // Linkage types
 // ------------------------------------------------------------
@@ -120,12 +121,49 @@ double cluster_distance(
 }
 
 // ------------------------------------------------------------
+// Calculate SSE (Sum of Squared Errors)
+// ------------------------------------------------------------
+double calculate_sse(const vector<vector<double>>& X, const vector<int>& labels, int k) {
+    vector<vector<double>> centroids(k, vector<double>(X[0].size(), 0.0));
+    vector<int> cluster_sizes(k, 0);
+    
+    // Calculate centroids
+    for (size_t i = 0; i < X.size(); i++) {
+        int cluster_id = labels[i];
+        for (size_t j = 0; j < X[i].size(); j++) {
+            centroids[cluster_id][j] += X[i][j];
+        }
+        cluster_sizes[cluster_id]++;
+    }
+    
+    // Normalize centroids
+    for (int c = 0; c < k; c++) {
+        if (cluster_sizes[c] > 0) {
+            for (size_t j = 0; j < centroids[c].size(); j++) {
+                centroids[c][j] /= cluster_sizes[c];
+            }
+        }
+    }
+    
+    // Calculate total SSE
+    double total_sse = 0.0;
+    for (size_t i = 0; i < X.size(); i++) {
+        int cluster_id = labels[i];
+        double dist = euclidean(X[i], centroids[cluster_id]);
+        total_sse += dist * dist;
+    }
+    
+    return total_sse;
+}
+
+// ------------------------------------------------------------
 // HAC Result struct
 // ------------------------------------------------------------
 struct HACResult {
     vector<int> labels;
     double runtime_seconds;
     double memory_mb;
+    double average_sse;
 };
 
 // ------------------------------------------------------------
@@ -189,6 +227,9 @@ HACResult hac(const vector<vector<double>>& X, int k, LinkageType linkage) {
     auto end_time = chrono::high_resolution_clock::now();
     double runtime = chrono::duration<double>(end_time - start_time).count();
     
+    // Calculate SSE
+    double sse = calculate_sse(X, labels, k);
+    
     // Estimate memory usage (approximate)
     // Data: n * features * 8 bytes (double)
     // Clusters: sum of all indices stored
@@ -196,7 +237,7 @@ HACResult hac(const vector<vector<double>>& X, int k, LinkageType linkage) {
     double clusters_memory = (n * sizeof(int) * 2) / (1024.0 * 1024.0); // rough estimate
     double total_memory = data_memory + clusters_memory;
 
-    return HACResult{labels, runtime, total_memory};
+    return HACResult{labels, runtime, total_memory, sse};
 }
 
 // ------------------------------------------------------------
@@ -258,6 +299,7 @@ int main(int argc, char** argv) {
     outfile << "  \"linkage\": \"" << linkage_str << "\",\n";
     outfile << "  \"runtime_seconds\": " << result.runtime_seconds << ",\n";
     outfile << "  \"memory_mb\": " << result.memory_mb << ",\n";
+    outfile << "  \"average_sse\": " << result.average_sse << ",\n";
     outfile << "  \"labels\": [";
     
     for (int i = 0; i < (int)result.labels.size(); i++) {
@@ -272,6 +314,7 @@ int main(int argc, char** argv) {
     cerr << "Results saved to " << output_file << "\n";
     cerr << "Runtime: " << result.runtime_seconds << " seconds\n";
     cerr << "Memory: " << result.memory_mb << " MB\n";
+    cerr << "Average SSE: " << result.average_sse << "\n";
 
     return 0;
 }
