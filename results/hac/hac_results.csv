@@ -1,0 +1,7 @@
+dataset,n,k,avg_sse,avg_runtime
+mall_dataset,200,5,77059,0.555495
+synthetic,100,5,8324.2,0.0714447
+synthetic,200,5,15941,0.666016
+synthetic,400,5,31557,4.28319
+synthetic,800,5,64535,33.6414
+synthetic,1600,5,1.3252e+05,272.366
