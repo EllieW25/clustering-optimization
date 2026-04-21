@@ -7,7 +7,7 @@
 #include "pso.h"
 using namespace std;
 
-// Synthetic dataset generator
+// Synthetic dataset generator.
 vector<vector<double>> generateSynthetic(int n) {
     vector<vector<double>> data(n, vector<double>(2));
 

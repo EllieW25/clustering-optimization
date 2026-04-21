@@ -15,7 +15,7 @@ double distanceEuclid(const vector<double>& a, const vector<double>& b) {
     return sqrt(sum);
 }
 
-/* Compute WCSS for a given set of centroids.
+/* Compute WCSS for a given set of centroids..
    For each point, find the nearest centroid and add squared distance. */
 double computeWCSS(const vector<vector<double>>& data, const vector<vector<double>>& centroids) {
     double wcss = 0.0;

@@ -13,7 +13,7 @@ struct Particle {
     double pBestVal;
 };
 
-/* Compute Euclidean distance between two d-dimensional points. */
+/* Compute Euclidean distance between two d-dimensional points.. */
 double distanceEuclid(const vector<double>& a, const vector<double>& b);
 
 /* Compute WCSS (Within-Cluster Sum of Squares) for a set of centroids. */

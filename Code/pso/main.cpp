@@ -5,7 +5,7 @@
 #include "pso.h"
 using namespace std;
 
-// CSV loader is implemented in pso.cpp
+// CSV loader is implemented in pso.cpp.
 vector<vector<double>> loadCSV(const string& filename);
 
 // Synthetic generator reused for testing/graphs
