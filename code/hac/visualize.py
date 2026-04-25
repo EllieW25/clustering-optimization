@@ -4,6 +4,10 @@ import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 import sys
 import os
+#HOW TO RUN
+#Example execution below
+#python visualize.py ..\..\data\synthetic\blobs_100.csv 100avg.json "100 point"
+
 
 def visualize_clusters(csv_path, json_path, title="HAC Clusters"):
     # Check if files exist
