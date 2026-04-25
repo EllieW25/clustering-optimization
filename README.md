@@ -12,14 +12,23 @@ Each algorithm was written in C++ and can be run directly in the command line. T
 
 # How to Compile
 Each algorithm can be compiled and ran individually using these commands:  
-  &emsp;cd code\hac && g++ -o hac.exe hac.cpp  
-  &emsp;cd code\k-means && g++ -o kmeans.exe k-means.cpp  
-  &emsp;cd code\k-medoids && g++ -o kmedoids.exe k-medoids.cpp  
-  &emsp;cd code\pso && g++ -o pso.exe pso_experiments.cpp   
-  &emsp;  
+  # 
+    cd code\hac && g++ -o hac.exe hac.cpp
+    cd code\k-means && g++ -o kmeans.exe k-means.cpp  
+    cd code\k-medoids && g++ -o kmedoids.exe k-medoids.cpp  
+    cd code\pso && g++ -o pso.exe pso_experiments.cpp   
   Or use the runner and compare all four algorithms at the same time (suggested but no output file is generated)  
-  &emsp; cd code && g++ -o runner.exe runner.cpp
+  # 
+    cd code && g++ -o runner.exe runner.cpp
 
 # Synthetic Dataset Generation
 Compile and run our synthetic data generator  
-&emsp;cd \data\synthetic && g++ -o syntheticdatagen.exe syntheticdatagen.cpp
+&emsp;
+# 
+    cd \data\synthetic && g++ -o syntheticdatagen.exe syntheticdatagen.cpp
+  &emsp;  
+    &emsp;  
+      &emsp;  
+        &emsp;  
+  # GenAI Disclosure
+  All code in this project was made with the assistance of ChatGPT and Microsoft Copilot
