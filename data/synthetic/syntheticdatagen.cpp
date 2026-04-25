@@ -1,3 +1,9 @@
+/*
+HOW TO RUN
+compile with g++ and run the executable. You will be prompted
+for n (number of points) k (number of clusters) and d (dimensions)
+*/
+
 #include <iostream>
 #include <vector>
 #include <cmath>
