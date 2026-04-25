@@ -8,6 +8,8 @@
 #include <chrono>
 
 using namespace std;
+//HOW TO RUN
+//compile with g++ and run. Example executions below
 //./hac ../../data/synthetic/blobs_100.csv 5 average
 //./hac path/to/csv [#clusters] [linkage: single|complete|average]
 // ------------------------------------------------------------
